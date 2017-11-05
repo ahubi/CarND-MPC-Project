@@ -96,25 +96,25 @@ int main() {
            */
           double cte = polyeval(coeffs, 0);
 
-          /*add delay of 100ms
-          *
+          /*
+           * add delay of 100ms
           */
-          px = v*latency;
-          py = 0;
-          psi = -v*delta*latency/Lf;
-          epsi = -atan(coeffs[1]) + psi;
-          cte= polyeval(coeffs,0)+v*sin(epsi)*latency;
-          v += throttle*latency;
-
+          double px_delay = v*latency;
+          double py_delay = 0;
+          double psi_delay = -v*delta*latency/Lf;
+          double epsi_delay = -atan(coeffs[1]) + psi;
+          double cte_delay = cte + (v*sin(epsi)*latency);
+          double v_delay = v + throttle*latency;
+          
           Eigen::VectorXd state(6);
-          state << px, py, psi, v, cte, epsi;
+          state << px_delay, py_delay, psi_delay, v_delay, cte_delay, epsi_delay;
 
           //solve
           MPC::mpc_result_s res = mpc.Solve(state, coeffs);
 
           // NOTE: Remember to divide by deg2rad(25) before you send the steering value back.
           // Otherwise the values will be in between [-deg2rad(25), deg2rad(25] instead of [-1, 1].
-          double steer_value = res.delta_start * (-1) / deg2rad(25);
+          double steer_value = res.delta_start / deg2rad(25);
           double throttle_value = res.a_start;
 
           json msgJson;
