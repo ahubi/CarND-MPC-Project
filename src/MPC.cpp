@@ -111,8 +111,9 @@ class FG_eval {
 
       AD<double> x0pow3 = CppAD::pow(x0,3);
       AD<double> x0pow2 = CppAD::pow(x0,2);
-
+      //calculate polyeval manually
       AD<double> f0 = coeffs[0] + (coeffs[1] * x0) + (coeffs[2] * x0pow2) + (coeffs[3] * x0pow3);
+      //calculate f' manually for 3rd degree polynomial
       AD<double> psides0 = CppAD::atan(coeffs[1] + (2 * coeffs[2] * x0) + (3 * coeffs[3] * x0pow2));
       // Here's `x` to get you started.
       // The idea here is to constraint this value to be 0.
@@ -250,16 +251,13 @@ MPC::mpc_result_s MPC::Solve(Eigen::VectorXd x0, Eigen::VectorXd coeffs) {
   auto cost = solution.obj_value;
   std::cout << "Cost " << cost << std::endl;
   mpc_result_s res;
-  // The rest of the constraints
+  // Take calculated points, skip the first one to be the green line looking better
   for (int t = 1; t < N; t++) {
     res.mpc_x.push_back(solution.x[x_start + t]);
     res.mpc_y.push_back(solution.x[y_start + t]);
   }
+  //take delta and a
   res.delta_start = solution.x[delta_start];
   res.a_start     = solution.x[a_start];
   return res;
-//      {solution.x[x_start + 1],   solution.x[y_start + 1],
-//          solution.x[psi_start + 1], solution.x[v_start + 1],
-//          solution.x[cte_start + 1], solution.x[epsi_start + 1],
-//          solution.x[delta_start],   solution.x[a_start]};
 }
