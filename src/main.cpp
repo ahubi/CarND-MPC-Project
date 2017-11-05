@@ -8,6 +8,9 @@
 #include "MPC.h"
 #include "json.hpp"
 #include "helper_functions.h"
+// add 100ms latency, in seconds
+const double latency = 0.1;
+const long int sleep_delay = 1000 * latency;
 // for convenience
 using json = nlohmann::json;
 using Eigen::VectorXd;
@@ -59,6 +62,8 @@ int main() {
           double py = j[1]["y"];
           double psi = j[1]["psi"];
           double v = j[1]["speed"];
+          double delta = j[1]["steering_angle"];
+          double throttle = j[1]["throttle"];
 
           /*
           * TODO: Calculate steering angle and throttle using MPC.
@@ -78,22 +83,31 @@ int main() {
             ptsx_local[i] = (shift_x * cos(0-psi) - shift_y * sin(0-psi));
             ptsy_local[i] = (shift_x * sin(0-psi) + shift_y * cos(0-psi));
           }
-
           //fit a 3rd degree polynomial to the above x and y coordinates
           auto coeffs = polyfit(ptsx_local, ptsy_local, 3);
-
-          /* The cross track error is calculated by evaluating
-           * at polynomial at x, f(x) and subtracting y.
-           */
-          double cte = polyeval(coeffs, 0);
 
           /*
            * Due to the sign starting at 0, the orientation error is -f'(x).
            */
           double epsi = -atan(coeffs[1]);
 
+          /* The cross track error is calculated by evaluating
+           * at polynomial at x, f(x) and subtracting y.
+           */
+          double cte = polyeval(coeffs, 0);
+
+          /*add delay of 100ms
+          *
+          */
+          px = v*latency;
+          py = 0;
+          psi = -v*delta*latency/Lf;
+          epsi = -atan(coeffs[1]) + psi;
+          cte= polyeval(coeffs,0)+v*sin(epsi)*latency;
+          v += throttle*latency;
+
           Eigen::VectorXd state(6);
-          state << 0, 0, 0, v, cte, epsi;
+          state << px, py, psi, v, cte, epsi;
 
           //solve
           MPC::mpc_result_s res = mpc.Solve(state, coeffs);
@@ -140,7 +154,7 @@ int main() {
           //
           // NOTE: REMEMBER TO SET THIS TO 100 MILLISECONDS BEFORE
           // SUBMITTING.
-          //this_thread::sleep_for(chrono::milliseconds(100));
+          this_thread::sleep_for(chrono::milliseconds(sleep_delay));
           ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
         }
       } else {
