@@ -12,7 +12,7 @@ double dt = 0.1;
 
 // NOTE: feel free to play around with this
 // or do something completely different
-double ref_v = 85;
+double ref_v = 100;
 
 // The solver takes all the state variables and actuator
 // variables in a singular vector. Thus, we should to establish
@@ -53,13 +53,13 @@ class FG_eval {
 
     // Minimize the use of actuators.
     for (int t = 0; t < N - 1; t++) {
-      fg[0] += 10000 * CppAD::pow(vars[delta_start + t], 2);
+      fg[0] += 100000 * CppAD::pow(vars[delta_start + t], 2);
       fg[0] += 50 * CppAD::pow(vars[a_start + t], 2);
     }
 
     for (int t = 0; t < N-2; t++) {
-      fg[0] +=  900000 * CppAD::pow(vars[delta_start + t + 1] - vars[delta_start + t], 2);
-      fg[0] +=  1000 * CppAD::pow(vars[a_start + t + 1] - vars[a_start + t], 2);
+      fg[0] +=  1000000 * CppAD::pow(vars[delta_start + t + 1] - vars[delta_start + t], 2);
+      fg[0] +=  100 * CppAD::pow(vars[a_start + t + 1] - vars[a_start + t], 2);
     }
     //
     // Setup Constraints
