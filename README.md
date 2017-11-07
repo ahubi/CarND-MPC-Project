@@ -3,6 +3,8 @@ Self-Driving Car Engineer Nanodegree Program
 
 [1]: https://en.wikipedia.org/wiki/Model_predictive_control
 
+### Introduction and theory
+
 Model predictive control (MPC) is a well-established technology for advanced
 process control (APC) deployed in many industrial applications. In this project
 MPC is implemented to drive the car in a simulator. While driving automatically
@@ -15,14 +17,25 @@ consist of following:
 * Control - controls the vehicle to follow the route as provided by path planing
 
 In this project the Control part is implemented with MPC approach.
-Path planing is provided by the simulator. The below picture illustrates the
-functionality of MPC. The reference trajectory is the path as provided by the
+Path planing part is provided by the simulator. The below picture illustrates the
+discrete scheme of MPC. The reference trajectory is the path as provided by the
 path planing module, the predicted output is the responsibility of MPC. Prediction
 Horizon is the time MPC predicts into the future. After the time amount k prediction
-takes place with new state and the horizon moves by amount of k into future (receding horizon). MPC tries to find the optimal trajectory with minimum costs.
-Once the optimum trajectory is found the MPC will also provide new inputs to actuators.
+takes place with a new state available at k+1 and the horizon moves by amount of k into future (receding horizon). MPC tries to find the optimal trajectory with minimum costs. Idealy the predicted trajectory should converge so that the error CTE (Cross Trajectory Error) between reference and predicted trajectory is minimal. Once the optimum trajectory is found the MPC will also provide new inputs to actuators.
 
 ![MPC picture from Wikipedia](./img/MPC_scheme_basic.png) A discrete MPC scheme [[1]]
+
+### Vehicle Model
+In this project we work wit a simple so called Kinematic Model. The state of a vehicle
+is described with following parameters:
+
+* x - x coordinate of the car
+* y - y coordinate of the car
+* \phi - orientation of the car  
+* v - speed of the car
+
+The state evolves through time by following:
+
 
 
 ---
