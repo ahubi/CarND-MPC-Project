@@ -31,12 +31,27 @@ is described with following parameters:
 
 * x - x coordinate of the car
 * y - y coordinate of the car
-* \phi - orientation of the car  
+* ψ - orientation of the car  
 * v - speed of the car
 
-The state evolves through time by following:
+Actuators or control inputs to the vehicle:
+* δ - steering angle
+* a - throttle
 
+The state evolves through time by following formulas:
 
+![MPC picture from Wikipedia](./img/motion_formulas.png)
+
+L​f is a physical characteristic of the vehicle.
+
+MPC will try to minimize the CTE and Orientation Errors during runtime.
+The Errors evolve through time by following formulas:
+
+![Cross Track Error](./img/cte.png)
+
+![Orientation Error](./img/oe.png)
+
+### Implementation
 
 ---
 
