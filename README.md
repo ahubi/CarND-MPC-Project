@@ -52,6 +52,82 @@ The Errors evolve through time by following formulas:
 ![Orientation Error](./img/oe.png)
 
 ### Implementation
+To implement the MPC following steps were addressed:
+* Set N and dt
+* Fit the polynomial to the waypoints
+* Calculate initial cross track error and orientation error values
+* Define the components of the cost function (state, actuators, etc)
+* Define the model constraints.
+
+To solve optimization problem ipopt and CppAD libraries were used.
+
+#### Adding delay
+One additional task was to model a delay of 100ms into final MPC solution.
+This would simulate a delayed command propagation through vehicle buses.
+Considering the vehicle model described above the delay can be coded as below:
+
+```
+// add 100ms latency, in seconds
+const double latency = 0.1;
+const long int sleep_delay = 1000 * latency;
+
+double px_delay = v*latency;
+double py_delay = 0;
+double psi_delay = -v*delta*latency/Lf;
+double epsi_delay = -atan(coeffs[1]) + psi;
+double cte_delay = cte + (v*sin(epsi)*latency);
+double v_delay = v + throttle*latency;
+```
+Simulating propagation of actuation commands through vehicle buses:
+
+```
+//Sleep 100ms before sending the actuation commands to the simulator
+
+this_thread::sleep_for(chrono::milliseconds(sleep_delay));
+ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
+
+```
+### Tuning MPC parameters
+To find ideal parameters the simulator was used to see the behavior of the car
+driving around.
+
+Setting N and dt:
+
+```
+// Set N and dt -> T = N * dt
+size_t N = 10;
+double dt = 0.1;
+
+```
+In this project the Prediction horizon is 1 second long.
+
+Additional tuning was achieved through cost function.
+```
+for (int t = 0; t < N; t++) {
+  fg[0] += 500 * CppAD::pow(vars[cte_start + t], 2);
+  fg[0] += 500 * CppAD::pow(vars[epsi_start + t], 2);
+  fg[0] += CppAD::pow(vars[v_start + t] - ref_v, 2);
+}
+
+// Minimize the use of actuators.
+for (int t = 0; t < N - 1; t++) {
+  fg[0] += 100000 * CppAD::pow(vars[delta_start + t], 2);
+  fg[0] += 50 * CppAD::pow(vars[a_start + t], 2);
+}
+
+for (int t = 0; t < N-2; t++) {
+  fg[0] +=  1000000 * CppAD::pow(vars[delta_start + t + 1] - vars[delta_start + t], 2);
+  fg[0] +=  100 * CppAD::pow(vars[a_start + t + 1] - vars[a_start + t], 2);
+}
+```
+Multiplication factors influence the solver into keeping sequential values closer together.
+To avoid sharp steering changes a high multiplication factor 100000 is chosen.
+
+### Simulating parameters
+The chosen parameters were simulated on simplified line model with 200 cycles.
+The plot of CTE, steering deltas and velocity is presented below:
+
+![Orientation Error](./img/simu_parameter_200_cycles.png)
 
 ---
 
