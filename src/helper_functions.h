@@ -7,9 +7,32 @@
 #include <vector>
 #include "Eigen-3.3/Eigen/Core"
 #include "Eigen-3.3/Eigen/QR"
+#include "Eigen-3.3/Eigen/QR"
 
 #ifndef HELPER_FUNCTIONS_H_
 #define HELPER_FUNCTIONS_H_
+
+using Eigen::VectorXd;
+
+inline void veh2map(const vector<double>& ptsx,
+             const vector<double>& ptsy,
+             const double px,
+             const double py,
+             const double psi,
+             VectorXd& x,
+             VectorXd& y){
+
+  x.resize(ptsx.size());
+  y.resize(ptsy.size());
+
+  for (size_t i = 0; i < ptsx.size(); i++) {
+    //shift car reference angle to 90 degrees
+    double shift_x = ptsx[i] - px;
+    double shift_y = ptsy[i] - py;
+    x[i] = (shift_x * cos(0-psi) - shift_y * sin(0-psi));
+    y[i] = (shift_x * sin(0-psi) + shift_y * cos(0-psi));
+  }
+}
 
 //calculate derivative
 inline double der2(double x, const Eigen::VectorXd& coeffs){

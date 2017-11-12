@@ -11,6 +11,8 @@
 // add 100ms latency, in seconds
 const double latency = 0.1;
 const long int sleep_delay = 1000 * latency;
+const double mph2mps = 0.44704;
+
 // for convenience
 using json = nlohmann::json;
 using Eigen::VectorXd;
@@ -62,6 +64,7 @@ int main() {
           double py = j[1]["y"];
           double psi = j[1]["psi"];
           double v = j[1]["speed"];
+          v *= mph2mps;
           double delta = j[1]["steering_angle"];
           double throttle = j[1]["throttle"];
 
@@ -72,17 +75,10 @@ int main() {
           *
           */
           // convert to vehicle's local coordinates, then all computation is in terms of the local coordinates
-          VectorXd ptsx_local(ptsx.size());
-          VectorXd ptsy_local(ptsy.size());
+          VectorXd ptsx_local;
+          VectorXd ptsy_local;
+          veh2map(ptsx, ptsy, px, py, psi, ptsx_local, ptsy_local);
 
-          for (size_t i = 0; i < ptsx.size(); i++) {
-            //shift car reference angle to 90 degrees
-            double shift_x = ptsx[i] - px;
-            double shift_y = ptsy[i] - py;
-
-            ptsx_local[i] = (shift_x * cos(0-psi) - shift_y * sin(0-psi));
-            ptsy_local[i] = (shift_x * sin(0-psi) + shift_y * cos(0-psi));
-          }
           //fit a 3rd degree polynomial to the above x and y coordinates
           auto coeffs = polyfit(ptsx_local, ptsy_local, 3);
 
